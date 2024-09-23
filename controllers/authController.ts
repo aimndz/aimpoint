@@ -2,14 +2,46 @@ import { Request, Response, NextFunction } from "express";
 import asyncHandler from "express-async-handler";
 import { body, validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
-import { PrismaClient } from "@prisma/client";
+import jwt from "jsonwebtoken";
 
+import dotenv from "dotenv";
+dotenv.config();
+
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const authController = {
-  login: asyncHandler(async (req, res) => {
-    // TODO: LOGIN
-  }),
+  login: asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const { username, password } = req.body;
+
+      try {
+        const user = await prisma.user.findUnique({
+          where: {
+            username: username,
+          },
+        });
+
+        // Check if user exists
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+          res.status(401).json({ msg: "Invalid username or password" });
+          return;
+        }
+
+        // Generate JWT token
+        const payload = { id: user.id, username: user.username };
+        const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
+          expiresIn: "1h",
+        });
+
+        // Successful login
+        res.status(200).json({ msg: "Login successful", token });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Internal server error" });
+      }
+    }
+  ),
 
   sign_up: [
     body("firstName")
@@ -70,39 +102,34 @@ const authController = {
         return true;
       }),
 
-    asyncHandler(
-      async (
-        req: Request,
-        res: Response,
-        next: NextFunction
-      ): Promise<void> => {
-        const errors = validationResult(req);
+    asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+      const errors = validationResult(req);
 
-        if (!errors.isEmpty()) {
-          res.status(400).json({ errors: errors.array() });
-          return;
-        }
-
-        const { firstName, lastName, username, password } = req.body;
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        try {
-          await prisma.user.create({
-            data: {
-              firstName,
-              lastName,
-              username,
-              password: hashedPassword,
-            },
-          });
-
-          res.status(201).json({ msg: "User created successfully" });
-        } catch (error) {
-          next(error);
-        }
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
       }
-    ),
+
+      const { firstName, lastName, username, password } = req.body;
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      try {
+        await prisma.user.create({
+          data: {
+            firstName,
+            lastName,
+            username,
+            password: hashedPassword,
+          },
+        });
+
+        res.status(201).json({ msg: "User created successfully" });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: "Internal server error" });
+      }
+    }),
   ],
 
   logout: asyncHandler(async (req, res) => {
