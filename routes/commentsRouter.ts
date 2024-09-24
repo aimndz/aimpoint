@@ -1,13 +1,13 @@
 import { Router } from "express";
-const commentsRouter = Router();
+const commentsRouter = Router({ mergeParams: true });
 
 import commentsController from "../controllers/commentsController";
 
 commentsRouter.get("/", commentsController.getAllComments);
-commentsRouter.get("/:id", commentsController.getCommentById);
+commentsRouter.get("/:commentId", commentsController.getCommentById);
 
 commentsRouter.post("/", commentsController.createComment);
-commentsRouter.put("/:id", commentsController.updateComment);
-commentsRouter.delete("/:id", commentsController.deleteComment);
+commentsRouter.put("/:commentId", commentsController.updateComment);
+commentsRouter.delete("/:commentId", commentsController.deleteComment);
 
 export default commentsRouter;

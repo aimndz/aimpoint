@@ -19,7 +19,7 @@ app.use(passport.initialize());
 // Routes
 app.use("/auth", authRouter);
 app.use("/posts", authenticateJWT, postsRouter);
-app.use("/posts/:postid/comments", authenticateJWT, commentsRouter);
+app.use("/posts/:postId/comments", authenticateJWT, commentsRouter);
 
 // Error handler middleware
 app.use(errorHandler);
