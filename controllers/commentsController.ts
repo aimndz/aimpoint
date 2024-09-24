@@ -17,7 +17,17 @@ const commentsController = {
   }),
 
   getCommentById: asyncHandler(async (req, res) => {
-    // TODO: GET COMMENT BY ID
+    const postId = req.params.postId;
+    const commentId = req.params.commentId;
+
+    const comment = await prisma.comment.findUnique({
+      where: {
+        postId: postId,
+        id: commentId,
+      },
+    });
+
+    res.status(200).json(comment);
   }),
 
   createComment: asyncHandler(async (req, res) => {
