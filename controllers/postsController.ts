@@ -177,7 +177,40 @@ const postsController = {
   ],
 
   deletePost: asyncHandler(async (req, res) => {
-    // TODO: DELETE POST
+    const user = req.user as User;
+    const userId = user?.id;
+
+    const postId = req.params.id;
+    const userRole = user?.role;
+
+    // Check if post exists
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+    });
+
+    if (!post) {
+      res.status(404).json({ msg: "Post not found" });
+      return;
+    }
+
+    // Only admins can delete posts
+    if (userRole !== "ADMIN" && post.userId !== userId) {
+      res.status(403).json({
+        msg: "Forbidden: You don't have permission to delete this post.",
+      });
+      return;
+    }
+
+    // Delete post
+    const deletedPost = await prisma.post.delete({
+      where: {
+        id: postId,
+      },
+    });
+
+    res.status(200).json(deletedPost);
   }),
 };
 
