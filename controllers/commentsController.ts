@@ -76,9 +76,61 @@ const commentsController = {
     }),
   ],
 
-  updateComment: asyncHandler(async (req, res) => {
-    // TODO: UPDATE COMMENT
-  }),
+  updateComment: [
+    body("text")
+      .trim()
+      .notEmpty()
+      .withMessage("Comment text is required")
+      .isLength({ max: 200 })
+      .withMessage("Comment text must be less than 200 characters"),
+
+    asyncHandler(async (req: Request, res: Response) => {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const postId = req.params.postId;
+      const commentId = req.params.commentId;
+      const { text } = req.body;
+
+      // Check if comment or posts exists
+      const comment = await prisma.comment.findFirst({
+        where: {
+          id: commentId,
+          postId,
+        },
+      });
+
+      if (!comment) {
+        res.status(404).json({ msg: "Comment or Post not found" });
+        return;
+      }
+
+      // Check if the user logged in is the owner of the comment
+      const user = req.user as User;
+      if (user?.id !== comment.userId) {
+        res
+          .status(403)
+          .json({ msg: "You are not authorized to edit this comment" });
+        return;
+      }
+
+      // Update the comment
+      const updatedComment = await prisma.comment.update({
+        where: {
+          id: commentId,
+        },
+        data: {
+          text,
+        },
+      });
+
+      res.status(201).json(updatedComment);
+    }),
+  ],
 
   deleteComment: asyncHandler(async (req, res) => {
     // TODO: DELETE COMMENT
