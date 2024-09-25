@@ -1,12 +1,13 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const postsController = {
   index: asyncHandler(async (req: Request, res: Response) => {
-    const userRole = req.user?.role;
+    const user = req.user as User;
+    const userRole = user?.role;
 
     // If user is an admin, return all posts
     if (userRole === "ADMIN") {
@@ -26,7 +27,8 @@ const postsController = {
   }),
 
   getPostById: asyncHandler(async (req: Request, res: Response) => {
-    const userRole = req.user?.role;
+    const user = req.user as User;
+    const userRole = user?.role;
     const postId = req.params.id;
 
     const post = await prisma.post.findUnique({
