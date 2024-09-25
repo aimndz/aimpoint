@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import { Request, Response } from "express";
+import { body, validationResult } from "express-validator";
 
 import { PrismaClient, User } from "@prisma/client";
 const prisma = new PrismaClient();
@@ -57,9 +58,56 @@ const postsController = {
     res.status(200).json(post);
   }),
 
-  createPost: asyncHandler(async (req, res) => {
-    // TODO: CREATE POST
-  }),
+  createPost: [
+    body("title")
+      .trim()
+      .notEmpty()
+      .withMessage("Title is required")
+      .isLength({ max: 255 })
+      .withMessage("Title must be less than 255 characters"),
+    body("content")
+      .trim()
+      .notEmpty()
+      .withMessage("Content is required")
+      .isLength({ max: 3000 })
+      .withMessage("Content must be less than 3000 characters"),
+
+    asyncHandler(async (req: Request, res: Response) => {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const user = req.user as User;
+      const userId = user?.id;
+      const userRole = user?.role;
+
+      // Only admins can create unpublished posts
+      if (userRole !== "ADMIN") {
+        res.status(403).json({
+          msg: "Forbidden: Only admins can create posts.",
+        });
+        return;
+      }
+
+      const { title, content, isPublished } = req.body;
+
+      // Create post
+      const post = await prisma.post.create({
+        data: {
+          title,
+          content,
+          published: isPublished,
+          publishedAt: isPublished ? new Date() : null, // Set publishedAt if isPublished is true
+          userId,
+        },
+      });
+
+      res.status(201).json(post);
+    }),
+  ],
 
   updatePost: asyncHandler(async (req, res) => {
     // TODO: UPDATE POST
