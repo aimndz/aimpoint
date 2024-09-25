@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
+import { body, validationResult } from "express-validator";
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const commentsController = {
@@ -30,9 +31,50 @@ const commentsController = {
     res.status(200).json(comment);
   }),
 
-  createComment: asyncHandler(async (req, res) => {
-    // TODO: CREATE COMMENT
-  }),
+  createComment: [
+    body("text")
+      .trim()
+      .notEmpty()
+      .withMessage("Comment text is required")
+      .isLength({ max: 200 })
+      .withMessage("Comment text must be less than 200 characters"),
+
+    asyncHandler(async (req: Request, res: Response) => {
+      const errors = validationResult(req);
+
+      if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return;
+      }
+
+      const user = req.user as User;
+      const userId = user?.id;
+
+      const postId = req.params.postId;
+      const { text } = req.body;
+
+      const post = await prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+      });
+
+      if (!post) {
+        res.status(404).json({ msg: "Post not found" });
+        return;
+      }
+
+      const comment = await prisma.comment.create({
+        data: {
+          text,
+          postId,
+          userId,
+        },
+      });
+
+      res.status(201).json(comment);
+    }),
+  ],
 
   updateComment: asyncHandler(async (req, res) => {
     // TODO: UPDATE COMMENT
