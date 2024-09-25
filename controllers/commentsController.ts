@@ -132,8 +132,41 @@ const commentsController = {
     }),
   ],
 
-  deleteComment: asyncHandler(async (req, res) => {
-    // TODO: DELETE COMMENT
+  deleteComment: asyncHandler(async (req: Request, res: Response) => {
+    const postId = req.params.postId;
+    const commentId = req.params.commentId;
+
+    // Check if comment or posts exists
+    const comment = await prisma.comment.findFirst({
+      where: {
+        id: commentId,
+        postId,
+      },
+    });
+
+    if (!comment) {
+      res.status(404).json({ msg: "Comment or Post not found" });
+      return;
+    }
+
+    // Check if the user logged in is the owner of the comment
+    const user = req.user as User;
+    if (user?.id !== comment.userId) {
+      res
+        .status(403)
+        .json({ msg: "You are not authorized to delete this comment" });
+      return;
+    }
+
+    // Delete
+    const deletedComment = await prisma.comment.delete({
+      where: {
+        postId: postId,
+        id: commentId,
+      },
+    });
+
+    res.status(200).json(deletedComment);
   }),
 };
 
