@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import passport from "./config/passportConfig";
-import authenticateJWT from "./middlewares/authMiddleware";
 import errorHandler from "./middlewares/errorMiddleware";
 
 import commentsRouter from "./routes/commentsRouter";
@@ -30,8 +29,8 @@ app.use(passport.initialize());
 
 // Routes
 app.use("/auth", authRouter);
-app.use("/posts", authenticateJWT, postsRouter);
-app.use("/posts/:postId/comments", authenticateJWT, commentsRouter);
+app.use("/posts", postsRouter);
+app.use("/posts/:postId/comments", commentsRouter);
 
 // Error handler middleware
 app.use(errorHandler);
