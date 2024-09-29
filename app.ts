@@ -1,4 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
+import cors from "cors";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 import passport from "./config/passportConfig";
 import authenticateJWT from "./middlewares/authMiddleware";
@@ -10,6 +14,14 @@ import authRouter from "./routes/authRouter";
 
 const app = express();
 
+const corsOptions = {
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
