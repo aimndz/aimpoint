@@ -22,6 +22,11 @@ const postsController = {
       where: {
         published: true,
       },
+      include: {
+        _count: {
+          select: { Comment: true },
+        },
+      },
     });
 
     res.status(200).json(posts);
@@ -35,6 +40,11 @@ const postsController = {
     const post = await prisma.post.findUnique({
       where: {
         id: postId,
+      },
+      include: {
+        _count: {
+          select: { Comment: true },
+        },
       },
     });
 
