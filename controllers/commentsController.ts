@@ -12,6 +12,13 @@ const commentsController = {
       where: {
         postId: postId,
       },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
     });
 
     res.status(200).json(comments);
@@ -25,6 +32,13 @@ const commentsController = {
       where: {
         postId: postId,
         id: commentId,
+      },
+      include: {
+        user: {
+          select: {
+            username: true,
+          },
+        },
       },
     });
 
