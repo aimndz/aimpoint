@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { PrismaClient } from "@prisma/client";
+import { create } from "domain";
 const prisma = new PrismaClient();
 
 const authController = {
@@ -28,7 +29,15 @@ const authController = {
       }
 
       // Generate JWT token
-      const payload = { id: user.id, username: user.username };
+      const payload = {
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+        },
+      };
+
+      console.log(payload);
       const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
         expiresIn: "1h",
       });
