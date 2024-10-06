@@ -12,7 +12,13 @@ const postsController = {
 
     // If user is an admin, return all posts
     if (userRole === "ADMIN") {
-      const posts = await prisma.post.findMany();
+      const posts = await prisma.post.findMany({
+        include: {
+          _count: {
+            select: { Comment: true },
+          },
+        },
+      });
       res.status(200).json(posts);
       return;
     }

@@ -4,7 +4,7 @@ const postsRouter = Router();
 import authenticateJWT from "../middlewares/authMiddleware";
 import postsController from "../controllers/postsController";
 
-postsRouter.get("/", postsController.index);
+postsRouter.get("/", authenticateJWT, postsController.index);
 postsRouter.get("/:id", postsController.getPostById);
 
 postsRouter.post("/", authenticateJWT, postsController.createPost);
