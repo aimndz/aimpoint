@@ -138,6 +138,10 @@ const postsController = {
       .withMessage("Content is required")
       .isLength({ max: 3000 })
       .withMessage("Content must be less than 3000 characters"),
+    body("isPublished")
+      .optional()
+      .isBoolean()
+      .withMessage("isPublished must be a boolean"),
 
     asyncHandler(async (req: Request, res: Response) => {
       const errors = validationResult(req);
