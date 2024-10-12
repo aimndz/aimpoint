@@ -1,6 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 
+// Execute the cron job -> This will run the cron job every 14 minutes to keep the backend awake
+import "./jobs/cron";
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -27,7 +30,6 @@ app.use(express.urlencoded({ extended: true }));
 // Passport middleware
 app.use(passport.initialize());
 
-// Routes
 app.use("/auth", authRouter);
 app.use("/posts", postsRouter);
 app.use("/posts/:postId/comments", commentsRouter);
