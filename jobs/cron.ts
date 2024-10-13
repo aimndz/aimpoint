@@ -3,7 +3,7 @@ import https from "https";
 
 const backendUrl: string = "https://aimpoint-api.onrender.com/posts";
 
-// Create a cron job that runs every 14 minutes to keep the backend alive
+// Runs every 14 minutes to keep the backend alive
 const job = new cron.CronJob("*/14 * * * *", () => {
   console.log("Restarting server");
 

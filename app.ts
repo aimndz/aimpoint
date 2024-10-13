@@ -1,8 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 
-// Execute the cron job -> This will run the cron job every 14 minutes to keep the backend awake
-import "./jobs/cron";
+import job from "./jobs/cron";
+job.start();
 
 import dotenv from "dotenv";
 dotenv.config();
