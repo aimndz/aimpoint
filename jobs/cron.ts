@@ -1,15 +1,26 @@
-import cron from "node-cron";
-import axios from "axios";
+import cron from "cron";
+import https from "https";
 
-const BACKEND_URL = "https://aimpoint-api.onrender.com/posts";
+const backendUrl: string = "https://aimpoint-api.onrender.com/posts";
 
-// Schedule a job to run every 14 minutes
-cron.schedule("*/14 * * * *", async () => {
-  try {
-    // Make a request to the backend
-    await axios.get(BACKEND_URL);
-    console.log("Backend called successfully");
-  } catch (error) {
-    console.error("Error calling backend:", error);
-  }
+// Create a cron job that runs every 14 minutes to keep the backend alive
+const job = new cron.CronJob("*/14 * * * *", () => {
+  console.log("Restarting server");
+
+  // Perform an HTTPS GET request to hit any backend API
+  https
+    .get(backendUrl, (res) => {
+      if (res.statusCode === 200) {
+        console.log("Server restarted");
+      } else {
+        console.error(
+          `Failed to restart server with status code: ${res.statusCode}`
+        );
+      }
+    })
+    .on("error", (err: Error) => {
+      console.error("Error during Restart:", err.message);
+    });
 });
+
+export default job;
